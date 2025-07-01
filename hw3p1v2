@@ -1,0 +1,327 @@
+// CS 2510, Assignment 3
+
+import tester.*;
+
+// to represent a list of Strings
+interface ILoString {
+  // combine all Strings in this list into one
+  String combine();
+
+  ILoString insert(String str);
+
+  ILoString sort();
+  
+  boolean largerThan(String first);
+
+  boolean isSorted();
+
+  ILoString interleave(ILoString that);
+
+  ILoString merge(ILoString that);
+  
+  ILoString mergeHelp(String first1, ILoString l1);
+
+  ILoString reverse();
+  
+  ILoString reverseHelp(ILoString accum);
+
+//  boolean isDoubledList();
+//  
+//  boolean firstTwoMatch(String first);
+//  
+//  ILoString deleteHead();
+//
+//  boolean isPalindromeList();
+}
+
+// to represent an empty list of Strings
+class MtLoString implements ILoString {
+  MtLoString() {
+  }
+
+  // combine all Strings in this list into one
+  public String combine() {
+    return "";
+  }
+
+  public ILoString insert(String str) {
+    return new ConsLoString(str, new MtLoString());
+  }
+
+  public ILoString sort() {
+    return new MtLoString();
+  }
+  
+  public boolean largerThan(String first) {
+    return true;
+  }
+
+  public boolean isSorted() {
+    return true;
+  }
+
+  public ILoString interleave(ILoString that) {
+    return that;
+  }
+
+  public ILoString merge(ILoString that) {
+    return that;
+  }
+  
+  public ILoString mergeHelp(String first1, ILoString l1) {
+    return new ConsLoString(first1, l1);
+  }
+
+  public ILoString reverse() {
+    return this;
+  }
+  
+  public ILoString reverseHelp(ILoString accum) {
+    return accum;
+  }
+
+//  public boolean isDoubledList() {
+//    return true;
+//  }
+//  
+//  public boolean firstTwoMatch(String first) {
+//    return true;
+//  }
+//  
+//  public ILoString deleteHead() {
+//    return this;
+
+  
+//
+//  public boolean isPalindromeList() {
+//    return true;
+//  }
+  
+}
+
+// to represent a nonempty list of Strings
+class ConsLoString implements ILoString {
+  String first;
+  ILoString rest;
+
+  ConsLoString(String first, ILoString rest) {
+    this.first = first;
+    this.rest = rest;
+  }
+
+  /*
+   * TEMPLATE FIELDS: ... this.first ... -- String ... this.rest ... -- ILoString
+   * 
+   * METHODS ... this.combine() ... -- String
+   * 
+   * METHODS FOR FIELDS ... this.first.concat(String) ... -- String ...
+   * this.first.compareTo(String) ... -- int ... this.rest.combine() ... -- String
+   * 
+   */
+
+  // combine all Strings in this list into one
+  public String combine() {
+    return this.first.concat(this.rest.combine());
+  }
+
+  public ILoString insert(String str) {
+    if (str.toLowerCase().compareTo(this.first.toLowerCase()) <= 0) {
+      return new ConsLoString(str, new ConsLoString(this.first, this.rest));
+    }
+    else {
+      return new ConsLoString(this.first, this.rest.insert(str));
+    }
+  }
+
+  public ILoString sort() {
+    return this.rest.sort().insert(this.first);
+  }
+  
+  public boolean largerThan(String first) {
+    if (first.toLowerCase().compareTo(this.first.toLowerCase()) <= 0) {
+      return this.rest.largerThan(this.first);
+    }
+    return false;
+  }
+  
+  public boolean isSorted() {
+    return this.rest.largerThan(this.first);
+  }
+
+  public ILoString interleave(ILoString that) {
+    return new ConsLoString(this.first, that.interleave(this.rest));
+  }
+
+  //CHNAGE
+  public ILoString merge(ILoString that) {
+    return that.mergeHelp(this.first, this.rest);
+  }
+  
+  public ILoString mergeHelp(String first1, ILoString rest1) {
+    if (first1.toLowerCase().compareTo(this.first.toLowerCase()) <= 0) {
+      return new ConsLoString(first1, this.merge(rest1));
+    }
+    return new ConsLoString(this.first, this.rest.mergeHelp(first1, rest1));
+  }
+
+  public ILoString reverse() {
+    return this.rest.reverseHelp(new ConsLoString( this.first, new MtLoString() ));
+  }
+  
+ public ILoString reverseHelp(ILoString accum) {
+   return this.rest.reverseHelp(new ConsLoString(this.first , accum));
+ }
+  
+ 
+// public boolean isDoubledList() {
+//   return this.rest.firstTwoMatch(this.first);
+// }
+// 
+// public boolean firstTwoMatch(String first) {
+//   if (first.equals(this.first)) {
+//     return true;
+//   }
+//   return false;
+// }
+// 
+// public ILoString deleteHead() {
+//   return this.rest;
+// }
+
+    
+//    if (this.getLength() == 1) {
+//      return false;
+//    }
+//    if (this.first.equals(this.rest.getFirst())) {
+//      return this.rest.getRest().isDoubledList();
+//    }
+//    return false;
+//  }
+//
+//  public boolean isPalindromeList() {
+//    return this.interleave(this.reverse()).isDoubledList();
+}
+
+
+
+// to represent examples for lists of strings
+class ExamplesStrings {
+
+  ILoString mary = new ConsLoString("Mary ", new ConsLoString("had ", new ConsLoString("a ",
+      new ConsLoString("little ", new ConsLoString("lamb.", new MtLoString())))));
+  ILoString sandy = new ConsLoString("Sandy ",
+      new ConsLoString("sells ", new ConsLoString("seashells.", new MtLoString())));
+
+  // test the method combine for the lists of Strings
+  boolean testCombine(Tester t) {
+    return t.checkExpect(this.mary.combine(), "Mary had a little lamb.");
+  }
+
+  boolean testSort(Tester t) {
+    return t.checkExpect(new MtLoString(), new MtLoString()) && t.checkExpect(this.mary.sort(),
+        new ConsLoString("a ", new ConsLoString("had ", new ConsLoString("lamb.",
+            new ConsLoString("little ", new ConsLoString("Mary ", new MtLoString()))))));
+  }
+
+  boolean testisSorted(Tester t) {
+    return t.checkExpect(new MtLoString().isSorted(), true)
+        && t.checkExpect(this.mary.isSorted(), false)
+        && t.checkExpect(this.mary.sort().isSorted(), true)
+        && t.checkExpect(new ConsLoString("Alton ",
+            new ConsLoString("asha ",
+                new ConsLoString("yaSMIN", new ConsLoString("ZeYnEp.", new MtLoString()))))
+                    .isSorted(),
+            true);
+  }
+
+  boolean testInterleave(Tester t) {
+    return t.checkExpect(new MtLoString().interleave(new MtLoString()), new MtLoString())
+        && t.checkExpect(new MtLoString().interleave(this.mary), this.mary)
+        && t.checkExpect(this.mary.interleave(new MtLoString()), this.mary) && t
+            .checkExpect(this.mary.interleave(this.mary),
+                new ConsLoString("Mary ",
+                    new ConsLoString("Mary ",
+                        new ConsLoString("had ",
+                            new ConsLoString("had ",
+                                new ConsLoString("a ", new ConsLoString("a ",
+                                    new ConsLoString("little ", new ConsLoString("little ",
+                                        new ConsLoString("lamb.",
+                                            new ConsLoString("lamb.", new MtLoString())))))))))))
+        && t.checkExpect(this.mary.interleave(this.sandy),
+            new ConsLoString("Mary ",
+                new ConsLoString("Sandy ",
+                    new ConsLoString("had ",
+                        new ConsLoString("sells ",
+                            new ConsLoString("a ",
+                                new ConsLoString("seashells.",
+                                    new ConsLoString("little ",
+                                        new ConsLoString("lamb.", new MtLoString())))))))))
+        && t.checkExpect(this.sandy.interleave(this.mary),
+            new ConsLoString("Sandy ",
+                new ConsLoString("Mary ",
+                    new ConsLoString("sells ",
+                        new ConsLoString("had ",
+                            new ConsLoString("seashells.",
+                                new ConsLoString("a ",
+                                    new ConsLoString("little ",
+                                        new ConsLoString("lamb.", new MtLoString())))))))))
+        && t.checkExpect(
+            new ConsLoString("a", new ConsLoString("C", new ConsLoString("E", new MtLoString())))
+                .interleave(new ConsLoString("b", new ConsLoString("D", new MtLoString()))),
+            new ConsLoString("a", new ConsLoString("b", new ConsLoString("C",
+                new ConsLoString("D", new ConsLoString("E", new MtLoString()))))));
+  }
+
+  
+  boolean testMerge(Tester t) {
+    return t.checkExpect(new MtLoString().merge(new MtLoString()), new MtLoString())
+        && t.checkExpect(new MtLoString().merge(this.mary.sort()), this.mary.sort())
+        && t.checkExpect(this.mary.sort().merge(new MtLoString()), this.mary
+            .sort())
+        && t.checkExpect(this.mary.sort().merge(this.sandy.sort()),
+            new ConsLoString("a ",
+                new ConsLoString("had ",
+                    new ConsLoString("lamb.",
+                        new ConsLoString("little ",
+                            new ConsLoString("Mary ",
+                                new ConsLoString("Sandy ",
+                                    new ConsLoString("seashells.",
+                                        new ConsLoString("sells ", new MtLoString())))))))))
+        && t.checkExpect(
+            new ConsLoString("a", new ConsLoString("C", new ConsLoString("E", new MtLoString())))
+                .merge(new ConsLoString("b", new ConsLoString("D", new MtLoString()))),
+            new ConsLoString("a", new ConsLoString("b", new ConsLoString("C",
+                new ConsLoString("D", new ConsLoString("E", new MtLoString()))))));
+  }
+
+  boolean testReverse(Tester t) {
+    return t.checkExpect(new MtLoString().reverse(), new MtLoString())
+        && t.checkExpect(this.mary.reverse(),
+            new ConsLoString("lamb.",
+                new ConsLoString("little ",
+                    new ConsLoString("a ",
+                        new ConsLoString("had ", new ConsLoString("Mary ", new MtLoString()))))))
+        && t.checkExpect(new ConsLoString("hi there", new MtLoString()).reverse(),
+            new ConsLoString("hi there", new MtLoString()));
+  }
+}
+//  boolean testisDoubledList(Tester t) {
+//    return t.checkExpect(new MtLoString().isDoubledList(), true)
+//        && t.checkExpect(new ConsLoString("a", new MtLoString()).isDoubledList(), false)
+//        && t.checkExpect(this.mary.isDoubledList(), false)
+//        && t.checkExpect(new ConsLoString("hey",
+//            new ConsLoString("hey",
+//                new ConsLoString("you", new ConsLoString("you", new MtLoString()))))
+//                    .isDoubledList(),
+//            true);
+//  }
+
+//  boolean testisPalindromeList(Tester t) {
+//    return t.checkExpect(new MtLoString().isPalindromeList(), true)
+//        && t.checkExpect(this.sandy.isPalindromeList(), false)
+//        && t.checkExpect(new ConsLoString("hi", new MtLoString()).isPalindromeList(), true)
+//        && t.checkExpect(new ConsLoString("hey",
+//            new ConsLoString("hockey", new ConsLoString("hey", new MtLoString())))
+//                .isPalindromeList(),
+//            true);
+//  }

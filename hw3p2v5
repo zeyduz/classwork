@@ -1,0 +1,278 @@
+import tester.*;                // The tester library
+import javalib.worldimages.*;   // images, like RectangleImage or OverlayImages
+import javalib.funworld.*;      // the abstract World class and the big-bang library
+import javalib.worldcanvas.WorldCanvas;
+
+
+import java.awt.Color;          // general colors (as triples of red,green,blue values)
+                                // and predefined colors (Color.RED, Color.GRAY, etc.)
+
+interface ITree { 
+  WorldImage draw();
+  ITree combine(int leftLength, int rightLength, double leftTheta, double rightTheta, ITree otherTree);
+  ITree rotateLeftBy(double degree);
+  ITree rotateRightBy(double degree);
+  boolean isDrooping();
+  double getWidth();
+  double getLeftWidth();
+  double getRightWidth();
+}
+ 
+class Leaf implements ITree {
+  int size; // represents the radius of the leaf
+  Color color; // the color to draw it
+  
+  Leaf(int size, Color color) {
+    this.size = size;
+    this.color = color;
+  }
+  
+  public WorldImage draw() {
+    return new CircleImage(this.size, OutlineMode.SOLID, this.color);
+  }
+  
+  public ITree combine(int leftLength, int rightLength, double leftTheta, double rightTheta, ITree otherTree) {
+    return new Branch(leftLength, rightLength,
+                      leftTheta, rightTheta,
+                      this, otherTree.rotateRightBy(rightTheta));
+  }
+  
+  public ITree rotateLeftBy(double degree) {
+    return this;
+  }
+  
+  public ITree rotateRightBy(double degree) {
+    return this;
+  }
+  
+  public boolean isDrooping() {
+    return false;
+  }
+  
+  public double getWidth() {
+    return this.getRightWidth() - this.getLeftWidth();
+  }
+  
+  public double getLeftWidth() {
+    return -1 * this.size;
+  }
+  
+  public double getRightWidth() {
+    return this.size;
+  }
+  
+}
+ 
+class Stem implements ITree {
+  // How long this stick is
+  int length;
+  // The angle (in degrees) of this stem, relative to the +x axis
+  double theta;
+  // The rest of the tree
+  ITree tree;
+  
+  Stem(int length, double theta, ITree tree) {
+    this.length = length;
+    this.theta = theta;
+    this.tree = tree;
+  }
+  
+  public WorldImage draw() {
+    return new OverlayImage(this.tree.draw(),
+                            new LineImage(new Posn((int) Math.round(this.length * -1 * Math.cos(Math.toRadians(this.theta % 360))),
+                                                   (int) Math.round(this.length * Math.sin(Math.toRadians(this.theta % 360)))), 
+                                          Color.black).movePinhole(this.length * 0.5 * Math.cos(Math.toRadians(this.theta % 360)), 
+                                                                   this.length * -0.5 * Math.sin(Math.toRadians(this.theta % 360)))).movePinhole(
+                                                                       this.length * -1 * Math.cos(Math.toRadians(this.theta % 360)),
+                                                                       this.length * 1 * Math.sin(Math.toRadians(this.theta % 360)));
+  }
+  
+  public ITree combine(int leftLength, int rightLength, double leftTheta, double rightTheta, ITree otherTree) {
+    return new Branch(leftLength, rightLength,
+                      leftTheta, rightTheta,
+                      this.rotateLeftBy(leftTheta), otherTree.rotateRightBy(rightTheta));
+  }
+  
+  public ITree rotateRightBy(double degree) {
+    return new Stem(this.length, degree, this.tree.rotateRightBy(degree)); //degree (middle parameter) may cause an issue
+  }
+  
+  public ITree rotateLeftBy(double degree) {
+    return new Stem(this.length, degree, this.tree.rotateLeftBy(degree)); //degree (middle parameter) may cause an issue
+  }
+  
+  public boolean isDrooping() {
+    if (((this.theta % 360) > 180.0 && (this.theta % 360) < 360.0) ||
+        ((this.theta % 360) < 0.0 && (this.theta % 360) > -180)){
+      return true;
+    }
+    return this.tree.isDrooping();
+  }
+  
+  public double getWidth() {
+    //If stem leans right
+    if( (this.theta % 360 <= 90 && this.theta % 360 >= -90) ||
+        this.theta % 360 >= 270  || this.theta % 360 <= -270) {
+      //If left part of continued tree is longer
+      if (-1 * this.tree.getLeftWidth() > this.length * Math.cos(Math.toRadians(this.theta))) {
+        return this.tree.getRightWidth() - this.tree.getLeftWidth();
+      }
+      return (this.length * Math.cos(Math.toRadians(this.theta))) + this.tree.getRightWidth();
+    }
+    //If stem leans left
+    //If right part of continued tree is longer
+    if (this.tree.getRightWidth() > this.length * Math.cos(Math.toRadians(this.theta))) {
+      return this.tree.getRightWidth() - this.tree.getLeftWidth();
+    }
+    return this.length * Math.cos(Math.toRadians(this.theta)) - this.tree.getLeftWidth();
+  }
+  
+  public double getLeftWidth() {
+    return this.length * Math.cos(Math.toRadians(this.theta)) + this.tree.getLeftWidth();
+  }
+  
+  public double getRightWidth() {
+    return this.length * Math.cos(Math.toRadians(this.theta)) + this.tree.getRightWidth();
+  }
+  
+}
+ 
+class Branch implements ITree {
+  // How long the left and right branches are
+  int leftLength;
+  int rightLength;
+  // The angle (in degrees) of the two branches, relative to the +x axis,
+  double leftTheta;
+  double rightTheta;
+  // The remaining parts of the tree
+  ITree left;
+  ITree right;
+  
+  Branch(int leftLength, int rightLength, double leftTheta, double rightTheta, ITree left, ITree right) {
+    this.leftLength = leftLength;
+    this.rightLength = rightLength;
+    this.leftTheta = leftTheta;
+    this.rightTheta = rightTheta;
+    this.left = left;
+    this.right = right;
+  }
+  
+  public WorldImage draw() {
+    return new OverlayImage(
+         new Stem(this.leftLength, this.leftTheta, this.left).draw(),        
+         new Stem(this.rightLength, this.rightTheta, this.right).draw());       
+  }
+  
+  public ITree combine(int leftLength, int rightLength, double leftTheta, double rightTheta, ITree otherTree) {
+    
+    return new Branch(this.leftLength, this.rightLength,
+                      this.leftTheta, this.rightTheta,
+                      this.rotateLeftBy(leftTheta), otherTree.rotateRightBy(rightTheta));
+  }
+  
+  public ITree rotateLeftBy(double degree) {
+    return new Branch(this.leftLength, this.rightLength, 
+                      this.leftTheta + (degree - 90), this.rightTheta - (90 - degree),
+                      this.left.rotateLeftBy(degree), this.right.rotateRightBy(degree));
+  }
+  
+  public ITree rotateRightBy(double degree) {
+    return new Branch(this.leftLength, this.rightLength, 
+                      this.leftTheta + (degree - 90), this.rightTheta - (90 - degree),
+                      this.left.rotateLeftBy(degree), this.right.rotateRightBy(degree));
+  }
+  
+  public boolean isDrooping() {
+    if (((this.leftTheta % 360) > 180.0 && (this.leftTheta % 360) < 360.0) ||
+        ((this.leftTheta % 360) < 0.0 && (this.leftTheta % 360) > -180)){
+      return true;
+    }
+    if (((this.rightTheta % 360) > 180.0 && (this.rightTheta % 360) < 360.0) ||
+        ((this.rightTheta % 360) < 0.0 && (this.rightTheta % 360) > -180)){
+      return true;
+    }
+    return this.left.isDrooping() || this.right.isDrooping();
+  }
+  
+  public double getWidth() {
+    return this.getRightWidth() - this.getLeftWidth();
+  }
+  
+  public double getLeftWidth() {
+    return this.leftLength * Math.cos(Math.toRadians(this.leftTheta)) + this.left.getLeftWidth();
+  }
+  
+  public double getRightWidth() {
+    return this.rightLength * Math.cos(Math.toRadians(this.rightTheta)) + this.right.getRightWidth();
+  }
+}
+
+class ExamplesTree {
+  
+  
+  /*
+  ITree leaf1 = new Leaf(10, Color.blue);
+  ITree leaf2 = new Leaf(8, Color.red);
+  ITree leaf3 = new Leaf(9, Color.yellow);
+  ITree leaf4 = new Leaf(13, Color.green);
+  
+  ITree stem1 = new Stem(50, 90, leaf1);
+  
+  ITree branch1 = new Branch(30, 30, 135, 65, leaf1, leaf2);
+  */
+  
+  ITree leaf1 = new Leaf(10, Color.RED);
+  ITree leaf2 = new Leaf(15, Color.BLUE);
+  ITree stem1 = new Stem(20, 60, leaf1);
+  ITree tree1 = new Branch(30, 30, 135, 40, this.leaf1, this.leaf2);
+  ITree tree2 = new Branch(30, 30, 115, 65, new Leaf(15, Color.GREEN), new Leaf(8, Color.ORANGE));
+
+  ITree tree3 = new Stem(50, 90, tree2);
+  ITree tree4 = new Branch(40, 50, 150, 30, tree1, tree2);
+  ITree tree4_2 = new Branch(40, 50, 150, -30, tree1, tree2);
+  
+  ITree tree5 = new Branch(80, 100, 150, 30, tree4, tree3);
+  
+  ITree basicCombine = leaf1.combine(20, 20, 130, 30, stem1);
+  ITree tree6 = tree3.combine(100, 120, 120, 65, tree5);
+  ITree tree7 = tree1.combine(40, 50, 150, 30, tree4);
+  ITree tree8 = tree6.combine(120, 140, 180, 20, tree7);
+  
+  ITree tree9 = new Branch(30, 30, 190, 720, this.leaf1, this.leaf2);
+  ITree tree10 = new Branch(30, 30, 720, 190, this.leaf1, this.leaf2);
+  ITree tree11 = new Branch(30, 40, 185, 45, this.tree1, this.leaf1);
+
+
+  
+//  boolean testDrawTree(Tester t) {
+//    WorldCanvas c = new WorldCanvas(800, 500);
+//    WorldScene s = new WorldScene(800, 500);
+//    return c.drawScene(s.placeImageXY(tree8.draw(), 400, 400))
+//        && c.show();
+//  }
+  
+  boolean testisDrooping(Tester t) {
+    return t.checkExpect(this.leaf1.isDrooping(), false) &&
+        t.checkExpect(this.tree1.isDrooping(), false) &&
+        t.checkExpect(this.tree9.isDrooping(), true) &&
+        t.checkExpect(this.tree11.isDrooping(), true) &&
+        t.checkExpect(this.tree4_2.isDrooping(), true);
+  }
+  
+  boolean testGetWidth(Tester t) {
+    return t.checkInexact(leaf1.getWidth(), 20.0, 0.01) &&
+        t.checkInexact(stem1.getWidth(), 20.0, 0.01) &&
+        t.checkInexact(tree1.getWidth(), 69.1945, 0.1) &&
+        t.checkInexact(basicCombine.getWidth(), 67.49676835, 0.01);
+  }
+  
+}
+
+
+
+
+
+
+
+
+

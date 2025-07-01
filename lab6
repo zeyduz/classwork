@@ -1,0 +1,162 @@
+import tester.Tester;
+
+// Represents functions of signature A -> R, for some argument type A and
+// result type R
+interface IFunc<A, R> {
+  R apply(A input);
+}
+
+interface IFunc2<A1, A2, R> {
+  R apply(A1 arg1, A2 arg2);
+}
+
+class StringsLength implements IFunc2<String, Integer, Integer> {
+  public Integer apply(String str, Integer sum) {
+    return str.length() + sum;
+  }
+}
+
+// generic list
+interface IList<T> {
+  // map over a list, and produce a new list with a (possibly different)
+  // element type
+  <U> IList<U> map(IFunc<T, U> f);
+
+  <U> U foldr(IFunc2<T, U, U> f, U base);
+}
+
+// empty generic list
+class MtList<T> implements IList<T> {
+  public <U> IList<U> map(IFunc<T, U> f) {
+    return new MtList<U>();
+  }
+
+  public <U> U foldr(IFunc2<T, U, U> f, U base) {
+    return base;
+  }
+}
+
+// non-empty generic list
+class ConsList<T> implements IList<T> {
+  T first;
+  IList<T> rest;
+
+  ConsList(T first, IList<T> rest) {
+    this.first = first;
+    this.rest = rest;
+  }
+
+  public <U> IList<U> map(IFunc<T, U> f) {
+    return new ConsList<U>(f.apply(this.first), this.rest.map(f));
+  }
+
+  public <U> U foldr(IFunc2<T, U, U> f, U base) {
+    return f.apply(this.first, this.rest.foldr(f, base));
+  }
+}
+
+// a json value
+interface JSON {
+  <R> R accept(JSONVisitor<R> visitor);
+}
+
+interface JSONVisitor<T> extends IFunc<JSON, T> {
+  T visitBlank(JSONBlank jb);
+
+  T visitNumber(JSONNumber jn);
+
+  T visitBool(JSONBool jbool);
+
+  T visitString(JSONString js);
+}
+
+// no value
+class JSONBlank implements JSON {
+  public <R> R accept(JSONVisitor<R> visitor) {
+    return visitor.visitBlank(this);
+  }
+}
+
+// a number
+class JSONNumber implements JSON {
+  int number;
+
+  JSONNumber(int number) {
+    this.number = number;
+  }
+
+  public <R> R accept(JSONVisitor<R> visitor) {
+    return visitor.visitNumber(this);
+  }
+}
+
+// a boolean
+class JSONBool implements JSON {
+  boolean bool;
+
+  JSONBool(boolean bool) {
+    this.bool = bool;
+  }
+
+  public <R> R accept(JSONVisitor<R> visitor) {
+    return visitor.visitBool(this);
+  }
+}
+
+// a string
+class JSONString implements JSON {
+  String str;
+
+  JSONString(String str) {
+    this.str = str;
+  }
+
+  public <R> R accept(JSONVisitor<R> visitor) {
+    return visitor.visitString(this);
+  }
+}
+
+class JSONToNumber implements JSONVisitor<Integer> {
+
+  @Override
+  public Integer apply(JSON input) {
+    return input.accept(this);
+  }
+
+  @Override
+  public Integer visitBlank(JSONBlank jb) {
+    return 0;
+  }
+
+  @Override
+  public Integer visitNumber(JSONNumber jn) {
+    return jn.number;
+  }
+
+  @Override
+  public Integer visitBool(JSONBool jbool) {
+    if (jbool.bool) {
+      return 1;
+    }
+    return 0;
+  }
+
+  @Override
+  public Integer visitString(JSONString js) {
+    return js.str.length();
+  }
+}
+
+class ExamplesList {
+  IList<String> los = new ConsList<String>("cat",
+      new ConsList<String>("dog", new ConsList<String>("alpaca", new MtList<String>())));
+  IList<JSON> loj = new ConsList<JSON>(new JSONBlank(),
+      new ConsList<JSON>(new JSONBool(true), new ConsList<JSON>(new JSONNumber(3),
+          new ConsList<JSON>(new JSONString("Zeynep"), new MtList<JSON>()))));
+
+  boolean testfoldr(Tester t) {
+    return t.checkExpect(this.los.foldr(new StringsLength(), 0), 12) && t.checkExpect(
+        this.loj.map(new JSONToNumber()), new ConsList<Integer>(0, new ConsList<Integer>(1,
+            new ConsList<Integer>(3, new ConsList<Integer>(6, new MtList<Integer>())))));
+  }
+}

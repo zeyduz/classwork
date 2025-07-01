@@ -1,0 +1,111 @@
+import tester.*;
+
+interface IPicture {
+  double getWidth();
+  IPicture doubleWidth();
+}
+
+class Shape implements IPicture {
+  String kind;
+  double size;
+  
+  Shape(String kind, double size) {
+    this.kind = kind;
+    this.size = size;
+  }
+  
+  public double getWidth() {
+    return this.size;
+  }
+  
+  public IPicture doubleWidth() {
+    return new Shape(this.kind, this.size * 2);
+  }
+}
+
+class Combo implements IPicture {
+  String name;
+  IOperation operation;
+  
+  Combo(String name, IOperation operation) {
+    this.name = name;
+    this.operation = operation;
+  }
+  
+  public double getWidth() {
+    return this.operation.getWidth();
+  }
+  
+  public IPicture doubleWidth() {
+    return this.operation.doubleWidth();
+  }
+}
+
+interface IOperation {
+  double getWidth();
+  IPicture doubleWidth();
+}
+
+class Scale implements IOperation {
+  IPicture picture;
+  
+  Scale(IPicture picture) {
+    this.picture = picture;
+  }   
+  
+  public double getWidth() {
+    return this.picture.getWidth();
+  }
+  
+  public IPicture doubleWidth() {
+    return this.picture.doubleWidth();
+  }
+}
+
+class Beside implements IOperation {
+  IPicture picture1;
+  IPicture picture2;
+  
+  Beside(IPicture picture1, IPicture picture2) {
+    this.picture1 = picture1;
+    this.picture2 = picture2;
+  }
+  
+  public double getWidth() {
+    return this.picture1.getWidth() + this.picture2.getWidth();
+  }
+  
+  public IPicture doubleWidth() {
+    return new Combo(this.name, new Beside(this.picture1.doubleWidth(), this.picture2));
+  }
+  
+}
+
+class Overlay implements IOperation {
+  IPicture topPicture;
+  IPicture bottomPicture;
+  
+  Overlay(IPicture topPicture, IPicture bottomPicture) {
+    this.topPicture = topPicture;
+    this.bottomPicture = bottomPicture;
+  }
+  
+  public double getWidth() {
+    return Math.max(this.topPicture.getWidth(), this.bottomPicture.getWidth());
+  }
+}
+
+class ExamplesPicture {
+  
+  IPicture circle = new Shape("circle", 20);
+  IPicture square = new Shape("square", 30);
+  IPicture bigCircle = new Combo("big circle", new Scale(this.circle));
+  IPicture squareOnCircle = new Combo("square on circle", new Overlay(this.square, this.circle));
+  IPicture doubledSquareOnCircle = new Combo("doubled square on circle", new Beside(this.squareOnCircle, this.squareOnCircle));
+  
+  boolean testgetWidth(Tester t) {
+    return
+        t.checkExpect(circle.getWidth(), 20.0) &&
+        t.checkExpect(bigCircle.getWidth(), 40.0);
+  }
+}

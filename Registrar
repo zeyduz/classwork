@@ -1,0 +1,61 @@
+interface IList<T> {
+
+}
+
+class MtList<T> implements IList<T> {
+
+}
+
+class ConsList<T> implements IList<T> {
+  T first;
+  IList<T> rest;
+  
+  ConsList(T first, IList<T> rest) {
+    this.first = first;
+    this.rest = rest;
+  }
+}
+
+class Course {
+  String name;
+  Instructor prof;
+  IList<Student> students;
+
+  Course(String name, Instructor prof, IList<Student> students) {
+    this.name = name;
+    this.prof = prof;
+    this.students = students;
+  }
+}
+
+class Instructor {
+  String name;
+  IList<Course> courses;
+
+  Instructor(String name) {
+    this.name = name;
+    this.courses = new MtList<Course>();
+  }
+}
+
+class Student {
+  String name;
+  int id;
+  IList<Course> courses;
+  
+  Student(String name, int id) {
+    this.name = name;
+    this.id = id;
+    this.courses = new MtList<Course>();
+  }
+  
+  //TODO wrong af
+  void enroll(Course c) {
+    c.students = new ConsList<Student>(this, c.students);
+    this.courses = new ConsList<Course>(c, this.courses);
+  }
+}
+
+class ExamplesRegsitrar {
+
+}

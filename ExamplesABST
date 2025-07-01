@@ -1,0 +1,203 @@
+class ExamplesABST {
+
+  // Example Books
+  Book book1 = new Book("Spanish Love Deception", "Elena Armas", 12);
+  Book book2 = new Book("Twilight", "Stephenie Meyer", 20);
+  Book book3 = new Book("Pet Cemetary", "Stephen King", 18);
+  Book book4 = new Book("The Giver", "Lois Lowry", 8);
+  Book book5 = new Book("50 Shades of Gray", "E. L. James", 18);
+  Book book6 = new Book("Zombies", "Yammy Doe", 200);
+  Book book7 = new Book("Green Eggs and Ham", "Dr. Seuss", 10);
+  Book book8 = new Book("ABC", "Alphabet", 19);
+
+  // Examples of Book BST
+  ABST<Book> leafTitle = new Leaf<Book>(new BooksByTitle());
+  ABST<Book> leafAuthor = new Leaf<Book>(new BooksByAuthor());
+  ABST<Book> leafPrice = new Leaf<Book>(new BooksByPrice());
+
+  // sorted by title
+  // the individual nodes
+  ABST<Book> treeTitle1 = new Node<Book>(new BooksByTitle(), this.book1, this.leafTitle,
+      this.leafTitle);
+  ABST<Book> treeTitle2 = new Node<Book>(new BooksByTitle(), this.book2, this.leafTitle,
+      this.leafTitle);
+  ABST<Book> treeTitle3 = new Node<Book>(new BooksByTitle(), this.book3, this.leafTitle,
+      this.leafTitle);
+  ABST<Book> treeTitle4 = new Node<Book>(new BooksByTitle(), this.book4, this.leafTitle,
+      this.leafTitle);
+  ABST<Book> treeTitle5 = new Node<Book>(new BooksByTitle(), this.book5, this.leafTitle,
+      this.leafTitle);
+
+  ABST<Book> treeTitle6 = new Node<Book>(new BooksByTitle(), this.book2, this.treeTitle4,
+      this.treeTitle5);
+  // Right-leaning tree sorted by title
+  ABST<Book> treeTitle7 = new Node<Book>(new BooksByTitle(), this.book1, this.treeTitle3,
+      this.treeTitle6);
+
+  // sorted by author
+  // the individual nodes
+  ABST<Book> treeAuthor1 = new Node<Book>(new BooksByAuthor(), this.book1, this.leafAuthor,
+      this.leafAuthor);
+  ABST<Book> treeAuthor2 = new Node<Book>(new BooksByAuthor(), this.book2, this.leafAuthor,
+      this.leafAuthor);
+  ABST<Book> treeAuthor3 = new Node<Book>(new BooksByAuthor(), this.book3, this.leafAuthor,
+      this.leafAuthor);
+  ABST<Book> treeAuthor4 = new Node<Book>(new BooksByAuthor(), this.book4, this.leafAuthor,
+      this.leafAuthor);
+  ABST<Book> treeAuthor5 = new Node<Book>(new BooksByAuthor(), this.book5, this.leafAuthor,
+      this.leafAuthor);
+
+  ABST<Book> treeAuthor6 = new Node<Book>(new BooksByAuthor(), this.book4, this.treeAuthor5,
+      this.treeAuthor2);
+  ABST<Book> treeAuthor7 = new Node<Book>(new BooksByAuthor(), this.book1, this.treeAuthor5,
+      this.leafAuthor);
+  ABST<Book> treeAuthor8 = new Node<Book>(new BooksByAuthor(), this.book3, this.leafAuthor,
+      this.treeAuthor2);
+  // The tree with equal branches that is sorted by author
+  ABST<Book> treeAuthor9 = new Node<Book>(new BooksByAuthor(), this.book4, this.treeAuthor7,
+      this.treeAuthor8);
+
+  // sorted by price
+//the individual nodes
+  ABST<Book> treePrice1 = new Node<Book>(new BooksByPrice(), this.book1, this.leafPrice,
+      this.leafPrice);
+  ABST<Book> treePrice2 = new Node<Book>(new BooksByPrice(), this.book2, this.leafPrice,
+      this.leafPrice);
+  ABST<Book> treePrice3 = new Node<Book>(new BooksByPrice(), this.book3, this.leafPrice,
+      this.leafPrice);
+  ABST<Book> treePrice4 = new Node<Book>(new BooksByPrice(), this.book4, this.leafPrice,
+      this.leafPrice);
+  ABST<Book> treePrice5 = new Node<Book>(new BooksByPrice(), this.book5, this.leafPrice,
+      this.leafPrice);
+
+  ABST<Book> treePrice6 = new Node<Book>(new BooksByPrice(), this.book1, this.treePrice4,
+      this.leafPrice);
+  // Left-leaning tree sorted by price
+  ABST<Book> treePrice7 = new Node<Book>(new BooksByPrice(), this.book3, this.treePrice6,
+      this.treePrice2);
+
+  boolean testCompareBooksByTitle(Tester t) {
+    return t.checkExpect(this.book1.compareBy(new BooksByTitle(), this.book1), 0)
+        && t.checkExpect(this.book1.compareBy(new BooksByTitle(), this.book2), -1)
+        && t.checkExpect(this.book1.compareBy(new BooksByTitle(), this.book3), 3)
+        && t.checkExpect(this.book1.compareBy(new BooksByTitle(), this.book5), 30)
+        && t.checkExpect(this.book2.compareBy(new BooksByTitle(), this.book1), 1)
+        && t.checkExpect(this.book2.compareBy(new BooksByTitle(), this.book3), 4)
+        && t.checkExpect(this.book3.compareBy(new BooksByTitle(), this.book4), -4)
+        && t.checkExpect(this.book2.compareBy(new BooksByTitle(), this.book4), 15)
+        && t.checkExpect(this.book4.compareBy(new BooksByTitle(), this.book2), -15);
+  }
+
+  boolean testCompareBooksByAuthor(Tester t) {
+    return t.checkExpect(this.book1.compareBy(new BooksByAuthor(), this.book1), 0)
+        && t.checkExpect(this.book2.compareBy(new BooksByAuthor(), this.book3), 73)
+        && t.checkExpect(this.book3.compareBy(new BooksByAuthor(), this.book2), -73)
+        && t.checkExpect(this.book1.compareBy(new BooksByAuthor(), this.book5), 62)
+        && t.checkExpect(this.book5.compareBy(new BooksByAuthor(), this.book1), -62)
+        && t.checkExpect(this.book3.compareBy(new BooksByAuthor(), this.book4), 7)
+        && t.checkExpect(this.book1.compareBy(new BooksByAuthor(), this.book4), -7);
+  }
+
+  boolean testCompareBooksByPrice(Tester t) {
+    return t.checkExpect(this.book1.compareBy(new BooksByPrice(), this.book1), 0)
+        && t.checkExpect(this.book2.compareBy(new BooksByPrice(), this.book1), 1)
+        && t.checkExpect(this.book1.compareBy(new BooksByPrice(), this.book2), -1)
+        && t.checkExpect(this.book3.compareBy(new BooksByPrice(), this.book5), 0)
+        && t.checkExpect(this.book5.compareBy(new BooksByPrice(), this.book3), 0)
+        && t.checkExpect(this.book4.compareBy(new BooksByPrice(), this.book2), -1);
+  }
+
+  boolean testInsertByTitle(Tester t) {
+    return t.checkExpect(this.treeTitle1.insert(this.book1),
+        new Node<Book>(new BooksByTitle(), this.book1, new Leaf<Book>(new BooksByTitle()),
+            this.treeTitle1))
+        && t.checkExpect(this.treeTitle1.insert(this.book2),
+            new Node<Book>(new BooksByTitle(), this.book1, new Leaf<Book>(new BooksByTitle()),
+                this.treeTitle2))
+        && t.checkExpect(this.treeTitle1.insert(this.book3),
+            new Node<Book>(new BooksByTitle(), this.book1, this.treeTitle3,
+                new Leaf<Book>(new BooksByTitle())))
+        && t.checkExpect(this.treeTitle6.insert(this.book1),
+            new Node<Book>(new BooksByTitle(), this.book2,
+                new Node<Book>(new BooksByTitle(), this.book4, this.treeTitle1,
+                    new Leaf<Book>(new BooksByTitle())),
+                this.treeTitle5))
+        && t.checkExpect(this.treeTitle7.insert(this.book3),
+            new Node<Book>(new BooksByTitle(), this.book1,
+                new Node<Book>(new BooksByTitle(), this.book3, new Leaf<Book>(new BooksByTitle()),
+                    this.treeTitle3),
+                this.treeTitle6))
+        && t.checkExpect(this.treeTitle7.insert(this.book6), new Node<Book>(new BooksByTitle(),
+            this.book1, this.treeTitle3,
+            new Node<Book>(new BooksByTitle(), this.book2, this.treeTitle4,
+                new Node<Book>(new BooksByTitle(), this.book5, new Leaf<Book>(new BooksByTitle()),
+                    new Node<Book>(new BooksByTitle(), this.book6,
+                        new Leaf<Book>(new BooksByTitle()), new Leaf<Book>(new BooksByTitle()))))))
+        && t.checkExpect(this.leafTitle.insert(this.book1),
+            new Node<Book>(new BooksByTitle(), this.book1, this.leafTitle, this.leafTitle));
+  }
+
+  boolean testInsertByAuthor(Tester t) {
+    return t.checkExpect(this.treeAuthor1.insert(this.book1),
+        new Node<Book>(new BooksByAuthor(), this.book1, new Leaf<Book>(new BooksByAuthor()),
+            this.treeAuthor1))
+        && t.checkExpect(this.treeAuthor1.insert(this.book5),
+            new Node<Book>(new BooksByAuthor(), this.book1, this.treeAuthor5, this.leafAuthor))
+        && t.checkExpect(this.treeAuthor6.insert(this.book1),
+            new Node<Book>(new BooksByAuthor(), this.book4,
+                new Node<Book>(new BooksByAuthor(), this.book5, this.leafAuthor, this.treeAuthor1),
+                this.treeAuthor2))
+        && t.checkExpect(this.treeAuthor6.insert(this.book3),
+            new Node<Book>(new BooksByAuthor(), this.book4, this.treeAuthor5,
+                new Node<Book>(new BooksByAuthor(), this.book2, this.treeAuthor3, this.leafAuthor)))
+        && t.checkExpect(this.treeAuthor6.insert(this.book4),
+            new Node<Book>(new BooksByAuthor(), this.book4, this.treeAuthor5,
+                new Node<Book>(new BooksByAuthor(), this.book4, this.leafAuthor, this.treeAuthor2)))
+        && t.checkExpect(this.treeAuthor9.insert(this.book6),
+            new Node<Book>(new BooksByAuthor(), this.book4, this.treeAuthor7,
+                new Node<Book>(new BooksByAuthor(), this.book3, this.leafAuthor,
+                    new Node<Book>(new BooksByAuthor(), this.book2, this.leafAuthor,
+                        new Node<Book>(new BooksByAuthor(), this.book6, this.leafAuthor,
+                            this.leafAuthor)))))
+        && t.checkExpect(this.leafAuthor.insert(this.book1),
+            new Node<Book>(new BooksByAuthor(), this.book1, this.leafAuthor, this.leafAuthor));
+  }
+
+  boolean testInsertByPrice(Tester t) {
+    return t.checkExpect(this.leafPrice.insert(this.book1),
+        new Node<Book>(new BooksByPrice(), this.book1, this.leafPrice, this.leafPrice))
+        && t.checkExpect(this.treePrice1.insert(this.book1),
+            new Node<Book>(new BooksByPrice(), this.book1, this.leafPrice, this.treePrice1))
+        && t.checkExpect(this.treePrice6.insert(this.book3),
+            new Node<Book>(new BooksByPrice(), this.book1, this.treePrice4, this.treePrice3))
+        && t.checkExpect(this.treePrice7.insert(this.book2),
+            new Node<Book>(new BooksByPrice(), this.book3, this.treePrice6,
+                new Node<Book>(new BooksByPrice(), this.book2, this.leafPrice, this.treePrice2)))
+        && t.checkExpect(this.treePrice7.insert(this.book4),
+            new Node<Book>(new BooksByPrice(), this.book3,
+                new Node<Book>(new BooksByPrice(), this.book1,
+                    new Node<Book>(new BooksByPrice(), this.book4, this.leafPrice, this.treePrice4),
+                    this.leafPrice),
+                new Node<Book>(new BooksByPrice(), this.book2, this.leafPrice, this.leafPrice)))
+        && t.checkExpect(this.treePrice7.insert(this.book1),
+            new Node<Book>(new BooksByPrice(), this.book3,
+                new Node<Book>(new BooksByPrice(), this.book1, this.treePrice4, this.treePrice1),
+                this.treePrice2))
+        && t.checkExpect(this.treePrice7.insert(this.book7),
+            new Node<Book>(new BooksByPrice(), this.book3,
+                new Node<Book>(new BooksByPrice(), this.book1,
+                    new Node<Book>(new BooksByPrice(), this.book4, this.leafPrice,
+                        new Node<Book>(new BooksByPrice(), this.book7, this.leafPrice,
+                            this.leafPrice)),
+                    this.leafPrice),
+                this.treePrice2))
+        && t.checkExpect(this.treePrice7.insert(this.book3),
+            new Node<Book>(new BooksByPrice(), this.book3, this.treePrice6,
+                new Node<Book>(new BooksByPrice(), this.book3, this.leafPrice, this.treePrice2)))
+        && t.checkExpect(this.treePrice7.insert(this.book8),
+            new Node<Book>(new BooksByPrice(), this.book3, this.treePrice6,
+                new Node<Book>(new BooksByPrice(), this.book2,
+                    new Node<Book>(new BooksByPrice(), this.book8, this.leafPrice, this.leafPrice),
+                    this.leafPrice)));
+  }
+}
